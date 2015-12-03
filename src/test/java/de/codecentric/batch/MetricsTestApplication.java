@@ -17,9 +17,9 @@ package de.codecentric.batch;
 
 import java.util.List;
 
+import com.codahale.metrics.Metric;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.actuate.metrics.Metric;
 import org.springframework.boot.actuate.metrics.rich.RichGauge;
 import org.springframework.boot.actuate.metrics.writer.CompositeMetricWriter;
 import org.springframework.boot.actuate.metrics.writer.MetricWriter;
@@ -60,7 +60,7 @@ public class MetricsTestApplication {
 		return new MetricsOutputFormatter() {
 
 			@Override
-			public String format(List<RichGauge> gauges, List<Metric<?>> metrics) {
+			public String format(List<RichGauge> gauges, List<Metric> metrics) {
 				StringBuilder builder = new StringBuilder("\n########## Personal Header for metrics! #####\n########## Metrics Start ##########\n");
 				if (gauges != null) {
 					for (RichGauge gauge : gauges) {
@@ -68,7 +68,7 @@ public class MetricsTestApplication {
 					}
 				}
 				if (metrics != null) {
-					for (Metric<?> metric : metrics) {
+					for (Metric metric : metrics) {
 						builder.append(metric.toString() + "\n");
 					}
 				}

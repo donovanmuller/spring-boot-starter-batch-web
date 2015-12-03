@@ -34,7 +34,6 @@ import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.metrics.repository.MetricRepository;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.TestRestTemplate;
@@ -48,6 +47,8 @@ import org.springframework.util.FileCopyUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+
+import com.codahale.metrics.MetricRegistry;
 
 import de.codecentric.batch.MetricsTestApplication;
 import de.codecentric.batch.metrics.MetricNames;
@@ -68,7 +69,7 @@ public class BatchMetricsFlatFileToDbIntegrationTest {
 	@Autowired
 	private JobExplorer jobExplorer;
 	@Autowired
-	private MetricRepository metricRepository;
+	private MetricRegistry metricRegistry;
 	@Autowired
 	private DataSource dataSource;
 
@@ -105,7 +106,7 @@ public class BatchMetricsFlatFileToDbIntegrationTest {
 				.withChunkErrorCount(0L).withSkipInReadCount(0L).withSkipInProcessCount(0L).withSkipInWriteCount(0L).build();
 		validator.validate();
 		// if one is correct, all will be in the MetricRepository, so I check just one
-		assertThat((Double) metricRepository.findOne("gauge.batch.flatFileToDbNoSkipJob.step." + MetricNames.PROCESS_COUNT.getName()).getValue(),
+		assertThat((Double) metricRegistry.getGauges().get("gauge.batch.flatFileToDbNoSkipJob.step." + MetricNames.PROCESS_COUNT.getName()).getValue(),
 				is(notNullValue())); // TODO
 		assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM ITEM", Long.class), is(writeCount));
 	}
@@ -123,7 +124,7 @@ public class BatchMetricsFlatFileToDbIntegrationTest {
 				.withChunkErrorCount(1L).withSkipInReadCount(0L).withSkipInProcessCount(0L).withSkipInWriteCount(0L).build();
 		validator.validate();
 		// if one is correct, all will be in the MetricRepository, so I check just one
-		assertThat((Double) metricRepository.findOne("gauge.batch.flatFileToDbNoSkipJob.step." + MetricNames.PROCESS_COUNT.getName()).getValue(),
+		assertThat((Double) metricRegistry.getGauges().get("gauge.batch.flatFileToDbNoSkipJob.step." + MetricNames.PROCESS_COUNT.getName()).getValue(),
 				is(notNullValue()));
 		assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM ITEM", Long.class), is(writeCount));
 	}
@@ -143,7 +144,7 @@ public class BatchMetricsFlatFileToDbIntegrationTest {
 				.withChunkErrorCount(1L).withSkipInReadCount(0L).withSkipInProcessCount(0L).withSkipInWriteCount(0L).build();
 		validator.validate();
 		// if one is correct, all will be in the MetricRepository, so I check just one
-		assertThat((Double) metricRepository.findOne("gauge.batch.flatFileToDbNoSkipJob.step." + MetricNames.PROCESS_COUNT.getName()).getValue(),
+		assertThat((Double) metricRegistry.getGauges().get("gauge.batch.flatFileToDbNoSkipJob.step." + MetricNames.PROCESS_COUNT.getName()).getValue(),
 				is(notNullValue()));
 		assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM ITEM", Long.class), is(writeCount));
 
@@ -161,7 +162,7 @@ public class BatchMetricsFlatFileToDbIntegrationTest {
 		validator.validate();
 		// if one is correct, all will be in the MetricRepository, so I check just one
 		// processCount is 5 for second run, metrics aren't cumulated
-		assertThat((Double) metricRepository.findOne("gauge.batch.flatFileToDbNoSkipJob.step." + MetricNames.PROCESS_COUNT.getName()).getValue(),
+		assertThat((Double) metricRegistry.getGauges().get("gauge.batch.flatFileToDbNoSkipJob.step." + MetricNames.PROCESS_COUNT.getName()).getValue(),
 				is(notNullValue()));
 		assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM ITEM", Long.class), is(writeCount));
 		new File("src/test/resources/metrics/flatFileToDbNoSkipJob_Restart.csv").delete();
@@ -180,7 +181,7 @@ public class BatchMetricsFlatFileToDbIntegrationTest {
 				.withChunkErrorCount(1L).withSkipInReadCount(0L).withSkipInProcessCount(1L).withSkipInWriteCount(0L).build();
 		validator.validate();
 		// if one is correct, all will be in the MetricRepository, so I check just one
-		assertThat((Double) metricRepository.findOne("gauge.batch.flatFileToDbSkipJob.step." + MetricNames.PROCESS_COUNT.getName()).getValue(),
+		assertThat((Double) metricRegistry.getGauges().get("gauge.batch.flatFileToDbSkipJob.step." + MetricNames.PROCESS_COUNT.getName()).getValue(),
 				is(notNullValue()));
 		assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM ITEM", Long.class), is(writeCount));
 	}
@@ -198,7 +199,7 @@ public class BatchMetricsFlatFileToDbIntegrationTest {
 				.withChunkErrorCount(6L).withSkipInReadCount(0L).withSkipInProcessCount(2L).withSkipInWriteCount(0L).build();
 		validator.validate();
 		// if one is correct, all will be in the MetricRepository, so I check just one
-		assertThat((Double) metricRepository.findOne("gauge.batch.flatFileToDbSkipJob.step." + MetricNames.PROCESS_COUNT.getName()).getValue(),
+		assertThat((Double) metricRegistry.getGauges().get("gauge.batch.flatFileToDbSkipJob.step." + MetricNames.PROCESS_COUNT.getName()).getValue(),
 				is(notNullValue()));
 		assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM ITEM", Long.class), is(writeCount));
 	}
@@ -216,7 +217,7 @@ public class BatchMetricsFlatFileToDbIntegrationTest {
 				.withAfterChunkCount(4L).withChunkErrorCount(2L).withSkipInReadCount(0L).withSkipInProcessCount(0L).withSkipInWriteCount(1L).build();
 		validator.validate();
 		// if one is correct, all will be in the MetricRepository, so I check just one
-		assertThat((Double) metricRepository.findOne("gauge.batch.flatFileToDbSkipJob.step." + MetricNames.PROCESS_COUNT.getName()).getValue(),
+		assertThat((Double) metricRegistry.getGauges().get("gauge.batch.flatFileToDbSkipJob.step." + MetricNames.PROCESS_COUNT.getName()).getValue(),
 				is(notNullValue()));
 		assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM ITEM", Long.class), is(writeCount));
 	}
@@ -234,7 +235,7 @@ public class BatchMetricsFlatFileToDbIntegrationTest {
 				.withAfterChunkCount(3L).withChunkErrorCount(0L).withSkipInReadCount(1L).withSkipInProcessCount(0L).withSkipInWriteCount(0L).build();
 		validator.validate();
 		// if one is correct, all will be in the MetricRepository, so I check just one
-		assertThat((Double) metricRepository.findOne("gauge.batch.flatFileToDbSkipJob.step." + MetricNames.PROCESS_COUNT.getName()).getValue(),
+		assertThat((Double) metricRegistry.getGauges().get("gauge.batch.flatFileToDbSkipJob.step." + MetricNames.PROCESS_COUNT.getName()).getValue(),
 				is(notNullValue()));
 		assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM ITEM", Long.class), is(writeCount));
 	}
@@ -253,7 +254,7 @@ public class BatchMetricsFlatFileToDbIntegrationTest {
 		validator.validate();
 		// if one is correct, all will be in the MetricRepository, so I check just one
 		assertThat(
-				(Double) metricRepository.findOne(
+				(Double) metricRegistry.getGauges().get(
 						"gauge.batch.flatFileToDbSkipProcessorNonTransactionalJob.step." + MetricNames.PROCESS_COUNT.getName()).getValue(),
 				is(notNullValue()));
 		assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM ITEM", Long.class), is(writeCount));
@@ -274,7 +275,7 @@ public class BatchMetricsFlatFileToDbIntegrationTest {
 		validator.validate();
 		// if one is correct, all will be in the MetricRepository, so I check just one
 		assertThat(
-				(Double) metricRepository.findOne(
+				(Double) metricRegistry.getGauges().get(
 						"gauge.batch.flatFileToDbSkipProcessorNonTransactionalJob.step." + MetricNames.PROCESS_COUNT.getName()).getValue(),
 				is(notNullValue()));
 		assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM ITEM", Long.class), is(writeCount));
@@ -298,8 +299,8 @@ public class BatchMetricsFlatFileToDbIntegrationTest {
 				.withChunkErrorCount(1L).withSkipInReadCount(0L).withSkipInProcessCount(0L).withSkipInWriteCount(0L).build();
 		validator.validate();
 		// if one is correct, all will be in the MetricRepository, so I check just one
-		assertThat((Double) metricRepository
-				.findOne("gauge.batch.flatFileToDbSkipReaderTransactionalJob.step." + MetricNames.PROCESS_COUNT.getName()).getValue(),
+		assertThat((Double) metricRegistry
+				.getGauges().get("gauge.batch.flatFileToDbSkipReaderTransactionalJob.step." + MetricNames.PROCESS_COUNT.getName()).getValue(),
 				is(notNullValue()));
 		assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM ITEM", Long.class), is(writeCount));
 	}

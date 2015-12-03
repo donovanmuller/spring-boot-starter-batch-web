@@ -19,6 +19,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.MetricRegistry;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.batch.core.BatchStatus;
@@ -26,8 +28,6 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.metrics.Metric;
-import org.springframework.boot.actuate.metrics.repository.MetricRepository;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.TestRestTemplate;
@@ -58,7 +58,7 @@ public class BatchMetricsExporterIntegrationTest {
 	@Autowired
 	private JobExplorer jobExplorer;
 	@Autowired
-	private MetricRepository metricRepository;
+	private MetricRegistry metricRegistry;
 
 	@Value("${local.server.port}")
 	int port;
@@ -85,8 +85,8 @@ public class BatchMetricsExporterIntegrationTest {
 				+ "/batch/monitoring/jobs/executions/{executionId}", String.class,
 				executionId);
 		assertThat(jobExecutionString.contains("COMPLETED"), is(true));
-		Metric<?> metric = metricRepository
-				.findOne("gauge.batch.simpleBatchMetricsJob.simpleBatchMetricsStep.processor");
+		Gauge metric = metricRegistry
+				.getGauges().get("gauge.batch.simpleBatchMetricsJob.simpleBatchMetricsStep.processor");
 		assertThat(metric, is(notNullValue()));
 		assertThat((Double) metric.getValue(), is(notNullValue()));
 		assertThat((Double) metric.getValue(), is(7.0));

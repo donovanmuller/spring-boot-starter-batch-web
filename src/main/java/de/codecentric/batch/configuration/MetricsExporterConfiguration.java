@@ -72,7 +72,7 @@ public class MetricsExporterConfiguration {
 				Integer.class, 2003);
 		String environment = env.getProperty("batch.metrics.export.environment",
 				getShortHostname());
-		return new GraphiteMetricsExporter(metricRegistry, metricReader, server, port,
+		return new GraphiteMetricsExporter(metricRegistry, server, port,
 				environment);
 	}
 
@@ -89,7 +89,7 @@ public class MetricsExporterConfiguration {
 				"root");
 		String environment = env.getProperty("batch.metrics.export.environment",
 				getShortHostname());
-		return new InfluxdbMetricsExporter(metricRegistry, metricReader, server, port,
+		return new InfluxdbMetricsExporter(metricRegistry, server, port,
 				dbName, user, password, environment);
 	}
 

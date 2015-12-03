@@ -29,12 +29,13 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.listener.StepExecutionListenerSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.metrics.GaugeService;
-import org.springframework.boot.actuate.metrics.Metric;
 import org.springframework.boot.actuate.metrics.export.Exporter;
-import org.springframework.boot.actuate.metrics.repository.MetricRepository;
 import org.springframework.boot.actuate.metrics.rich.RichGauge;
 import org.springframework.boot.actuate.metrics.rich.RichGaugeRepository;
 import org.springframework.core.Ordered;
+
+import com.codahale.metrics.Metric;
+import com.codahale.metrics.MetricRegistry;
 
 /**
  * This listener exports all metrics with the prefix 'counter.batch.{jobName}.{jobExecutionId}.{stepName}
@@ -59,16 +60,17 @@ public class MetricsListener extends StepExecutionListenerSupport implements Ord
 	private GaugeService gaugeService;
 
 	private RichGaugeRepository richGaugeRepository;
-	private MetricRepository metricRepository;
 	private List<Exporter> exporters;
 	@Autowired(required = false)
 	private MetricsOutputFormatter metricsOutputFormatter = new SimpleMetricsOutputFormatter();
 
+	private MetricRegistry metricRegistry;
+
 	public MetricsListener(GaugeService gaugeService, RichGaugeRepository richGaugeRepository,
-			MetricRepository metricRepository, List<Exporter> exporters) {
+						   MetricRegistry metricRegistry, List<Exporter> exporters) {
 		this.gaugeService = gaugeService;
 		this.richGaugeRepository = richGaugeRepository;
-		this.metricRepository = metricRepository;
+		this.metricRegistry = metricRegistry;
 		this.exporters = exporters;
 	}
 
@@ -130,9 +132,9 @@ public class MetricsListener extends StepExecutionListenerSupport implements Ord
 		}
 	}
 
-	private List<Metric<?>> exportBatchMetrics() {
-		List<Metric<?>> metrics = new ArrayList<Metric<?>>();
-		for (Metric<?> metric : metricRepository.findAll()) {
+	private List<com.codahale.metrics.Metric> exportBatchMetrics() {
+		List<Metric> metrics = new ArrayList<>();
+		for (Metric metric : metricRegistry.getMetrics().values()) {
 			metrics.add(metric);
 		}
 		return metrics;
@@ -150,7 +152,7 @@ public class MetricsListener extends StepExecutionListenerSupport implements Ord
 	private static class SimpleMetricsOutputFormatter implements MetricsOutputFormatter {
 
 		@Override
-		public String format(List<RichGauge> gauges, List<Metric<?>> metrics) {
+		public String format(List<RichGauge> gauges, List<Metric> metrics) {
 			StringBuilder builder = new StringBuilder("\n########## Metrics Start ##########\n");
 			if (gauges != null) {
 				for (RichGauge gauge : gauges) {
@@ -158,7 +160,7 @@ public class MetricsListener extends StepExecutionListenerSupport implements Ord
 				}
 			}
 			if (metrics != null) {
-				for (Metric<?> metric : metrics) {
+				for (Metric metric : metrics) {
 					builder.append(metric.toString() + "\n");
 				}
 			}

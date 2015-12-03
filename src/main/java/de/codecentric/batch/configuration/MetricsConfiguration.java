@@ -33,6 +33,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
+import com.codahale.metrics.MetricRegistry;
+
 import de.codecentric.batch.metrics.BatchMetricsImpl;
 import de.codecentric.batch.metrics.MetricsListener;
 import de.codecentric.batch.metrics.ReaderProcessorWriterMetricsAspect;
@@ -57,6 +59,8 @@ public class MetricsConfiguration implements ListenerProvider {
 	private GaugeService gaugeService;
 	@Autowired
 	private MetricWriter metricWriter;
+	@Autowired
+	private MetricRegistry metricRegistry;
 	@Autowired(required = false)
 	private List<Exporter> exporters;
 
@@ -73,7 +77,7 @@ public class MetricsConfiguration implements ListenerProvider {
 
 	@Bean
 	public MetricsListener metricsListener() {
-		return new MetricsListener(gaugeService, richGaugeRepository, baseConfig.metricRepository(), exporters);
+		return new MetricsListener(gaugeService, richGaugeRepository, metricRegistry, exporters);
 	}
 
 	@Override

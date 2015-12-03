@@ -17,7 +17,7 @@ package de.codecentric.batch.metrics;
 
 import java.util.List;
 
-import org.springframework.boot.actuate.metrics.Metric;
+import com.codahale.metrics.Metric;
 import org.springframework.boot.actuate.metrics.rich.RichGauge;
 
 /**
@@ -28,7 +28,7 @@ import org.springframework.boot.actuate.metrics.rich.RichGauge;
  * @author Tobias Flohre
  */
 public interface MetricsOutputFormatter {
-	
-	public String format(List<RichGauge> gauges, List<Metric<?>> metrics);
+
+	public String format(List<RichGauge> gauges, List<Metric> metrics);
 
 }
